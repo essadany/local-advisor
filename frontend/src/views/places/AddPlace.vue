@@ -11,7 +11,7 @@
               <input
                 type="text"
                 id="name"
-                v-model="placeData.nom"
+                v-model="placeData.name"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
               />
@@ -39,10 +39,10 @@
                 <option value="" disabled>Sélectionnez une catégorie</option>
                 <option
                   v-for="category in categories"
-                  :key="category.id"
-                  :value="category.id"
+                  :key="category.categoryId"
+                  :value="category.categoryId"
                 >
-                  {{ category.nom }}
+                  {{ category.name }}
                 </option>
               </select>
             </div>
@@ -52,7 +52,7 @@
               <input
                 type="url"
                 id="image"
-                v-model="placeData.image"
+                v-model="placeData.website"
                 placeholder="https://example.com/image.jpg"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
@@ -64,7 +64,7 @@
               <input
                 type="text"
                 id="address"
-                v-model="placeData.adresse"
+                v-model="placeData.address"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
               />
@@ -75,7 +75,7 @@
               <input
                 type="text"
                 id="city"
-                v-model="placeData.ville"
+                v-model="placeData.city"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
               />
@@ -86,7 +86,7 @@
               <input
                 type="text"
                 id="postal"
-                v-model="placeData.codePostal"
+                v-model="placeData.zip"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 required
               />
@@ -118,40 +118,42 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { usePlacesStore } from '../stores/places';
-import { useAuthStore } from '../stores/auth';
-import { fetchCategories } from '../services/api';
-import { Category } from '../types';
+import { usePlaceStore } from '@/stores/usePlaceStore';
+import { useUserStore } from '@/stores/useUserStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import type { Category } from '@/api/categoryApi';
+import type { CreatePlacePayload } from '@/api/placeApi';
 
 const router = useRouter();
-const placesStore = usePlacesStore();
-const authStore = useAuthStore();
+const placeStore = usePlaceStore();
+const userStore = useUserStore();
+const categoryStore = useCategoryStore();
 
 const categories = ref<Category[]>([]);
 const submitting = ref(false);
 const placeData = ref({
-  nom: '',
+  name: '',
   description: '',
-  adresse: '',
-  ville: '',
-  codePostal: '',
-  image: '',
-  categoryId: '',
-  userId: 0
+  address: '',
+  city: '',
+  zip: '',
+  country: null as string | null,
+  website: null as string | null,
+  phone: null as string | null,
+  categoryId: 0,
 });
 
-const isAuthenticated = computed(() => authStore.isAuthenticated);
+const isAuthenticated = computed(() => userStore.isAuthenticated);
 
 onMounted(async () => {
-  // Rediriger si l'utilisateur n'est pas connecté
   if (!isAuthenticated.value) {
     router.push('/login');
     return;
   }
 
   try {
-    categories.value = await fetchCategories();
-    placeData.value.userId = authStore.currentUser?.id || 0;
+    await categoryStore.fetchCategories();
+    categories.value = categoryStore.categories;
   } catch (err) {
     console.error("Erreur lors du chargement des catégories:", err);
   }
@@ -165,13 +167,15 @@ async function submitPlace() {
 
   submitting.value = true;
   try {
-    const newPlace = await placesStore.createPlace({
+    const payload: CreatePlacePayload = {
       ...placeData.value,
-      categoryId: Number(placeData.value.categoryId)
-    });
+      categoryId: Number(placeData.value.categoryId),
+    };
 
-    if (newPlace) {
-      router.push(`/lieux/${newPlace.id}`);
+    const newPlace = await placeStore.addPlace(payload);
+
+    if (newPlace?.placeId) {
+      router.push(`/lieux/${newPlace.placeId}`);
     }
   } catch (err) {
     console.error("Erreur lors de la création du lieu:", err);

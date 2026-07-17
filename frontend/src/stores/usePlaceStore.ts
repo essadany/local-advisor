@@ -1,6 +1,6 @@
 // src/store/useStore.ts
 import { defineStore } from 'pinia';
-import { placeApi, type Place } from '@/api/placeApi';
+import { placeApi, type Place, type CreatePlacePayload } from '@/api/placeApi';
 import { ref } from 'vue';
 
 export const usePlaceStore = defineStore('place', {
@@ -27,16 +27,18 @@ export const usePlaceStore = defineStore('place', {
       }
     },
 
-    async addPlace(place: Place) {
+    async addPlace(place: CreatePlacePayload): Promise<Place | null> {
       try {
         const newPlace = await placeApi.createPlace(place);
         this.places.push(newPlace);
+        return newPlace;
       } catch (error: unknown) {
         if (error instanceof Error) {
           this.error = error.message;
         } else {
           this.error = String(error);
         }
+        return null;
       }
     },
 

@@ -1,45 +1,42 @@
-🎯 Idée du projet
+# LocalAdvisor
 
-LocalAdvisor est une plateforme où les utilisateurs peuvent donner et consulter des recommandations sur les meilleurs endroits dans leur ville (restaurants, cafés, salles de sport, coiffeurs…).
+---
 
-📌 L'ordre du pojet
+LocalAdvisor est une plateforme collaborative où les utilisateurs partagent, découvrent et évaluent les meilleurs endroits de leur ville (restaurants, cafés, salles de sport, coiffeurs…).
 
-            1️⃣ Conception (Maquettes + UML)
-            2️⃣ Développement Backend (API REST, Sécurité)
-            3️⃣ Développement Frontend (UI, Connexion API)
-            4️⃣ Tests & Qualité (Unitaires, E2E)
-            5️⃣ Mise en place CI/CD & Déploiement
+## Technologie principale
 
-🚀 Technologies utilisées
+- 🖥 **Backend:** Spring Boot 3 (Java 21, Maven), Sécurité JWT, JPA/Hibernate (PostgreSQL)
+- 🎨 **Frontend:** Vue 3, Vite, TypeScript, Pinia
+- 🐘 **Base de données:** PostgreSQL
 
-            🖥 Backend : Java EE (Spring Boot + Hibernate JPA)
-                        Spring Boot (API REST)
-                        Spring Security (JWT Authentification)
-                        Hibernate JPA + MySQL
-                        Algorithme simple de tri (ex: classer les meilleurs lieux par note)
-            🎨 Frontend : ...
+## Architecture & Conteneurisation
 
-📌 Fonctionnalités principales
+- Dockerfiles et `.dockerignore` sont rassemblés dans le dossier `/docker`.
+- Orchestration via Docker Compose pour le développement local.
+- Les variables d'environnement sont regroupées dans `stack_my_settings`.
 
-            -  Inscription & Connexion (JWT)
-            -  Ajout de lieux et de recommandations (nom, adresse, description, catégorie, note)
-            -  Système de notation & avis (1 à 5 étoiles + commentaire)
-            -  Recherche avancée (filtrer par catégorie, notation, distance)
-            -  Carte interactive 
-            -  Favoris (les utilisateurs peuvent sauvegarder des lieux)
-            -  Notifications des nouveaux avis 
+---
 
-📌 Phase 2 : Développement Backend avec Spring Boot
+## Démarrage rapide
 
-🔹 1. Initialisation du projet
+1. **Ouvrir `stack_my_settings`** et renseigner les valeurs réelles pour `DB_PASSWORD` et `JWT_SECRET`.
+2. **Lancer le projet en local :**
+   ```bash
+   docker-compose up --env-file stack_my_settings --build
+   ```
+3. **Interfaces :**
+   - Frontend (SPA) : http://localhost:4173
+   - Backend (API REST) : http://localhost:8080
 
-            1️⃣ Aller sur Spring Initializr
-            2️⃣ Sélectionner les dépendances suivantes :
-                        Spring Web (pour créer une API REST)
-                        Spring Security (pour sécuriser l’API avec JWT)
-                        Spring Data JPA (pour gérer les bases de données)
-                        MySQL Driver
-                        Lombok (réduit le code répétitif)
-            3️⃣ Générer et télécharger le projet
-            4️⃣ Ouvrir avec IntelliJ IDEA
+---
 
+## Fonctionnalités principales
+
+- Inscription/connexion avec JWT
+- Ajout et recommandation de lieux
+- Recherche multicritères, carte interactive, favoris
+- Système de notation/commentaires
+- Notifications sur les nouveaux avis
+
+---

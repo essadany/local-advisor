@@ -1,0 +1,9 @@
+target
+*.iml
+*.log
+.mvn
+.idea
+*.md
+src/test
+application.properties
+.env

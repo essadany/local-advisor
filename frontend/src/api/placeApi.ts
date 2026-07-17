@@ -17,6 +17,18 @@ export interface Place {
   category: Category;
 }
 
+export interface CreatePlacePayload {
+  name: string;
+  description: string;
+  address: string;
+  city: string;
+  zip: string;
+  country: string | null;
+  website: string | null;
+  phone: string | null;
+  categoryId: number;
+}
+
 
 const { token } = useAuth();
 
@@ -35,7 +47,7 @@ export const placeApi = {
     return await response.json();
   },
 
-  createPlace: async (place: Place): Promise<Place> => {
+  createPlace: async (place: CreatePlacePayload): Promise<Place> => {
     const response = await fetch('/api/places', {
       method: 'POST',
       headers: {
