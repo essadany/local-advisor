@@ -16,7 +16,8 @@ show_menu() {
   echo "3) Restart stack      (down + up --build -d)"
   echo "4) View logs          (docker compose --env-file $ENV_FILE logs -f)"
   echo "5) Database: psql     (docker compose exec postgres-db psql)"
-  echo "6) Exit"
+  echo "6) Resync password   (update postgres pwd from stack_my_settings)"
+  echo "7) Exit"
   echo "=============================="
   read -rp "Choice: " choice
 }
@@ -57,7 +58,14 @@ case "${1:-menu}" in
           echo "Opening psql shell into postgres-db ..."
           docker_compose exec postgres-db psql -U "${POSTGRES_USER:-postgres}" "${POSTGRES_DB:-localadvisor}"
           ;;
-        6) exit 0 ;;
+        6)
+          echo "Resyncing postgres password from $ENV_FILE ..."
+          source "$ENV_FILE"
+          docker_compose exec -T postgres-db psql -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-localadvisor}" -c "ALTER USER ${POSTGRES_USER:-postgres} WITH PASSWORD '${DB_PASSWORD}';"
+          docker_compose restart backend
+          echo "Password resynced and backend restarted."
+          ;;
+        7) exit 0 ;;
         *) echo "Invalid choice." ;;
       esac
       echo ""
