@@ -1,2 +1,4 @@
 stack_my_settings
 *.bak
+backend/localadvisor/localadvisor.log
+backend/.idea
