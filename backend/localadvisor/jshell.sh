@@ -3,10 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-if [ ! -d "target/classes" ]; then
-  echo "Compiling..."
-  ./mvnw compile -DskipTests -q
-fi
+echo "Compiling..."
+./mvnw compile -DskipTests -q
 
 source ../../stack_my_settings
 
