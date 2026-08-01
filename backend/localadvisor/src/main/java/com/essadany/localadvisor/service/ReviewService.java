@@ -35,11 +35,11 @@ public class ReviewService {
     }
 
     public List<Review> getReviewsByUser(Long userId) {
-        return reviewRepository.findAll();
+        return reviewRepository.findByUserId(userId);
     }
 
     public List<Review> getReviewsByPlace(Long placeId) {
-        return reviewRepository.findAll();
+        return reviewRepository.findByPlacePlaceId(placeId);
     }
 
     public void deleteReview(Long id) {
