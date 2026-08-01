@@ -48,6 +48,7 @@ show_menu() {
   echo " 4) View logs          (docker compose --env-file $ENV_FILE logs -f)"
   echo " 5) Logs: new terminal (opens logs in a separate window)"
   echo " 6) Database: psql     (docker compose exec postgres-db psql)"
+  echo " 8) Database: JShell Console (ad-hoc Java/JPA queries, Django shell_plus-like)"
   echo " 9) Resync password   (update postgres pwd from stack_my_settings)"
   echo "10) Exit"
   echo "=============================="
@@ -57,7 +58,7 @@ show_menu() {
 show_help() {
   echo "LocalAdvisor Stack Manager"
   echo ""
-  echo "Usage: $0 {menu|start|stop|logs|psql|-h}"
+echo "Usage: $0 {menu|start|stop|logs|psql|jshell|-h}"
 echo ""
 echo "Commands:"
 echo "  menu      Interactive menu (default)"
@@ -65,6 +66,7 @@ echo "  start     Build images and start containers (detached)"
 echo "  stop      Stop and remove containers"
 echo "  logs      Tail logs from all services"
 echo "  psql      Open psql shell into postgres-db"
+echo "  jshell    Open JShell Console with JPA repos pre-imported (new terminal)"
 echo "  -h, --help  Show this help"
   echo ""
   echo "All commands use: docker compose --env-file $ENV_FILE -f $COMPOSE_FILE"
@@ -85,19 +87,24 @@ case "${1:-menu}" in
          1)
           docker_compose up --build -d && echo "Stack started."
           open_logs
+          open_jshell
           ;;
         2) docker_compose down && echo "Stack stopped." ;;
          3)
           docker_compose down
           docker_compose up --build -d && echo "Stack restarted."
           open_logs
+          open_jshell
           ;;
         4) docker_compose logs -f ;;
+        5) open_logs ;;
+        6)
         5) open_logs ;;
         6)
           echo "Opening psql shell into postgres-db ..."
           docker_compose exec postgres-db psql -U "${POSTGRES_USER:-postgres}" "${POSTGRES_DB:-localadvisor}"
           ;;
+         8) open_jshell ;;
          9)
           echo "Resyncing postgres password from $ENV_FILE ..."
           source "$ENV_FILE"
@@ -105,6 +112,7 @@ case "${1:-menu}" in
           docker_compose restart backend
           echo "Password resynced and backend restarted."
           ;;
+         10) exit 0 ;;
          10) exit 0 ;;
         *) echo "Invalid choice." ;;
       esac
@@ -115,5 +123,6 @@ case "${1:-menu}" in
   stop)   shift; docker_compose down "$@" ;;
   logs)   shift; docker_compose logs -f "$@" ;;
   psql)   shift; docker_compose exec postgres-db psql -U "${POSTGRES_USER:-postgres}" "${POSTGRES_DB:-localadvisor}" "$@" ;;
-  *)      echo "Usage: $0 {menu|start|stop|logs|psql|-h}" ;;
+  jshell) open_jshell ;;
+  *)      echo "Usage: $0 {menu|start|stop|logs|psql|jshell|-h}" ;;
 esac
