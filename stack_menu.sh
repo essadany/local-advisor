@@ -99,8 +99,6 @@ case "${1:-menu}" in
         4) docker_compose logs -f ;;
         5) open_logs ;;
         6)
-        5) open_logs ;;
-        6)
           echo "Opening psql shell into postgres-db ..."
           docker_compose exec postgres-db psql -U "${POSTGRES_USER:-postgres}" "${POSTGRES_DB:-localadvisor}"
           ;;
