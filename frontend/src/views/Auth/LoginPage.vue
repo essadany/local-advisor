@@ -240,7 +240,7 @@ const handleLogin = async () => {
 };
 const handleRegister = async () => {
   console.log('Tentative d\'inscription avec :', registerForm);
-  const fullname = registerForm.firstName + ' ' + registerForm.lastName;
+  const fullname = [registerForm.firstName, registerForm.lastName].filter(Boolean).join(' ');
   // Validation du mot de passe
   if (registerForm.password !== registerForm.confirmPassword) {
     errorMessage.value = 'Les mots de passe ne correspondent pas';

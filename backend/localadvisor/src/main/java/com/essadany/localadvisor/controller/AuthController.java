@@ -42,6 +42,9 @@ public class AuthController {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getRole() == null) {
+            user.setRole(com.essadany.localadvisor.model.Role.USER);
+        }
         userService.saveUser(user);
         HttpStatus created = HttpStatus.CREATED;
         response.put("status", created.value());
@@ -59,10 +62,14 @@ public class AuthController {
                 authData.put("type", "Bearer");
                 return ResponseEntity.ok(authData);
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "Email ou mot de passe incorrect");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         } catch (AuthenticationException e) {
             log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", "Email ou mot de passe incorrect");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
         }
     }
 

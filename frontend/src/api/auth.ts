@@ -5,9 +5,9 @@ export interface AuthResponse {
 }
 
 export const registerApi = async (name: string, email:string, password: string) : Promise<AuthResponse> => {
-  const response = await fetch('api/auth/register', {
+  const response = await fetch('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ name, email, password, role: 'user' }),
+    body: JSON.stringify({ name, email, password, role: 'USER' }),
     headers: { 'Content-Type': 'application/json' },
   });
   const responseBody = await response.json();
@@ -21,17 +21,22 @@ export const registerApi = async (name: string, email:string, password: string) 
 }
 
 export const loginApi = async (email: string, password: string) : Promise<AuthResponse> => {
-  console.log('Sending login request with ', { email, password});
   const response = await fetch('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
     headers: { 'Content-Type': 'application/json' },
   });
-  const responseBody = await response.json();
+  const text = await response.text();
+  let responseBody: any;
+  try {
+    responseBody = JSON.parse(text);
+  } catch {
+    throw new Error('Email ou mot de passe incorrect');
+  }
 
   if (!response.ok) {
     console.error('Login failed:', response.status, responseBody);
-    throw new Error('Email ou mot de passe incorrect');
+    throw new Error(responseBody.message || 'Email ou mot de passe incorrect');
   }
 
   return responseBody;
