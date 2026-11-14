@@ -1,5 +1,6 @@
 package com.essadany.localadvisor.controller;
 
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.service.PlaceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -17,22 +19,20 @@ class PlaceController {
 
     @GetMapping
     public ResponseEntity<List<Place>> getAllPlaces() {
-        if (placeService.getAllPlaces().isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
         return ResponseEntity.ok(placeService.getAllPlaces());
     }
 
     @PostMapping
     public ResponseEntity<Place> addPlace(@RequestBody Place place) {
         Place createdPlace = placeService.addPlace(place);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlace);
+        return ResponseEntity.created(URI.create("/api/v1/places/" + createdPlace.getPlaceId()))
+                .body(createdPlace);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Place> updatePlace(@PathVariable Long id, @RequestBody Place place) {
         if (placeService.getPlaceById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
+            throw new ResourceNotFoundException("Place " + id + " not found");
         }
         place.setPlaceId(id);
         return ResponseEntity.ok(placeService.updatePlace(place));
@@ -40,6 +40,9 @@ class PlaceController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
+        if (placeService.getPlaceById(id).isEmpty()) {
+            throw new ResourceNotFoundException("Place " + id + " not found");
+        }
         placeService.deletePlace(id);
         return ResponseEntity.noContent().build();
     }

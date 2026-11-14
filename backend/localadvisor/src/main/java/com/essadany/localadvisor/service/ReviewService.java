@@ -1,5 +1,6 @@
 package com.essadany.localadvisor.service;
 
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.model.Review;
 import com.essadany.localadvisor.model.User;
@@ -26,9 +27,9 @@ public class ReviewService {
 
     public Review addReview(Review review) {
         User user = userRepository.findById(review.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User " + review.getUser().getId() + " not found"));
         Place place = placeRepository.findById(review.getPlace().getPlaceId())
-                .orElseThrow(() -> new RuntimeException("Place not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Place " + review.getPlace().getPlaceId() + " not found"));
         review.setUser(user);
         review.setPlace(place);
         return reviewRepository.save(review);

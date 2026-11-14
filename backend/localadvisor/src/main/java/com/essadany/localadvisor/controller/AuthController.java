@@ -1,6 +1,7 @@
 package com.essadany.localadvisor.controller;
 
 import com.essadany.localadvisor.config.JwtUtil;
+import com.essadany.localadvisor.exception.ConflictException;
 import com.essadany.localadvisor.model.User;
 import com.essadany.localadvisor.repository.UserRepository;
 import com.essadany.localadvisor.service.UserService;
@@ -35,10 +36,7 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
         if (userService.getUserByEmail(user.getEmail()).isPresent()) {
-            HttpStatus conflict = HttpStatus.CONFLICT;
-            response.put("status", conflict.value());
-            response.put("message", "L'utilisateur existe déja");
-            return ResponseEntity.status(conflict).body(response);
+            throw new ConflictException("L'utilisateur existe déja");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -54,23 +52,11 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-            if (authentication.isAuthenticated()) {
-                Map<String, Object> authData = new HashMap<>();
-                authData.put("token", jwtUtil.generateToken(user.getEmail()));
-                authData.put("type", "Bearer");
-                return ResponseEntity.ok(authData);
-            }
-            Map<String, Object> error = new HashMap<>();
-            error.put("message", "Email ou mot de passe incorrect");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-        } catch (AuthenticationException e) {
-            log.error(e.getMessage());
-            Map<String, Object> error = new HashMap<>();
-            error.put("message", "Email ou mot de passe incorrect");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
-        }
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
+        Map<String, Object> authData = new HashMap<>();
+        authData.put("token", jwtUtil.generateToken(user.getEmail()));
+        authData.put("type", "Bearer");
+        return ResponseEntity.ok(authData);
     }
 
 }

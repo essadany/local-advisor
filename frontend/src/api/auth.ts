@@ -14,7 +14,7 @@ export const registerApi = async (name: string, email:string, password: string) 
 
   if (!response.ok) {
     console.error('Registration failed:', response.status, responseBody);
-    throw new Error(responseBody.message);
+    throw new Error(responseBody.error?.message ?? 'Inscription impossible');
   }
 
   return responseBody;
@@ -36,7 +36,7 @@ export const loginApi = async (email: string, password: string) : Promise<AuthRe
 
   if (!response.ok) {
     console.error('Login failed:', response.status, responseBody);
-    throw new Error(responseBody.message || 'Email ou mot de passe incorrect');
+    throw new Error(responseBody.error?.message ?? 'Email ou mot de passe incorrect');
   }
 
   return responseBody;

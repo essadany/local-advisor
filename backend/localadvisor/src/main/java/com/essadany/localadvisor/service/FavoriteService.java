@@ -1,5 +1,7 @@
 package com.essadany.localadvisor.service;
 
+import com.essadany.localadvisor.exception.ConflictException;
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Favorite;
 import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.model.User;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -26,14 +29,18 @@ public class FavoriteService {
     }
 
     public Iterable<Favorite> getFavoritesByUserId(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User " + userId + " not found"));
         return favoriteRepository.findAllByUser(user);
     }
 
+    public Optional<Favorite> getFavoriteById(Long favoriteId) {
+        return favoriteRepository.findById(favoriteId);
+    }
+
     public Favorite addFavorite(Favorite favorite) {
-        // Check if the favorite already exists
         if (favoriteRepository.existsByUserAndPlace(favorite.getUser(), favorite.getPlace())) {
-            return null; // or throw an exception
+            throw new ConflictException("This place is already a favorite of this user");
         }
         return favoriteRepository.save(favorite);
     }
