@@ -1,73 +1,58 @@
 package com.essadany.localadvisor.controller;
 
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Review;
 import com.essadany.localadvisor.service.ReviewService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
+import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/reviews")
-class ReviewController {
-    @Autowired
-    private ReviewService reviewService;
+@RequestMapping("/api/v1/reviews")
+@RequiredArgsConstructor
+public class ReviewController {
+    private final ReviewService reviewService;
 
-    @PostMapping("/add")
-    public ResponseEntity<Review> addReview(@RequestBody Review review) {
-        Review createdReview = reviewService.addReview(review);
-        return ResponseEntity.ok(createdReview);
+    @GetMapping
+    public List<Review> getReviews(
+            @RequestParam(required = false) Long placeId,
+            @RequestParam(required = false) Long userId) {
+        return reviewService.getReviews(placeId, userId);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Review>> getAllReviews() {
-        if (reviewService.getAllReviews().isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(reviewService.getAllReviews());
+    @GetMapping("/{id}")
+    public Review getReview(@PathVariable Long id) {
+        return reviewService.getReviewById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review " + id + " not found"));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Review>> getReviewsByUser(@PathVariable Long userId) {
-        if (reviewService.getReviewsByUser(userId).isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(reviewService.getReviewsByUser(userId));
+    @PostMapping
+    public ResponseEntity<Review> createReview(@RequestBody Review review) {
+        Review created = reviewService.createReview(review);
+        return ResponseEntity.created(URI.create("/api/v1/reviews/" + created.getReviewId())).body(created);
     }
 
-    @GetMapping("/place/{placeId}")
-    public ResponseEntity<List<Review>> getReviewsByPlace(@PathVariable Long placeId) {
-        if (reviewService.getReviewsByPlace(placeId).isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(reviewService.getReviewsByPlace(placeId));
+    @PutMapping("/{id}")
+    public Review updateReview(@PathVariable Long id, @RequestBody Review review) {
+        getReview(id);
+        return reviewService.updateReview(id, review);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review review) {
-        if (reviewService.getReviewById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        review.setReviewId(id);
-        return ResponseEntity.ok(reviewService.updateReview(review));
-    }
-
-
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
+        getReview(id);
         reviewService.deleteReview(id);
         return ResponseEntity.noContent().build();
     }
-
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteAllReviews() {
-        reviewService.deleteAllReviews();
-        return ResponseEntity.noContent().build();
-    }
-
-
-
-
 }

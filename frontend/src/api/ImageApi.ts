@@ -2,31 +2,26 @@ import { useAuth } from '@/composables/useAuth'
 
 export interface Image {
   id: number
-  place_id: number
-  user_id: number
   url: string
 }
 
 const { token } = useAuth()
 
-export const addImage = async (File: File, place_id: number, user_id: number): Promise<Image> => {
-  const formData = new FormData()
-  formData.append('image', File)
-  formData.append('place_id', place_id.toString())
-  formData.append('user_id', user_id.toString())
-  const response = await fetch('/api/images/add', {
+export const addImage = async (imageUrl: string, place_id: number, user_id: number): Promise<Image> => {
+  const response = await fetch('/api/v1/images', {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token.value}`,
     },
-    body: formData,
+    body: JSON.stringify({ imageUrl, placeId: place_id, userId: user_id }),
   })
   if (!response.ok) throw new Error("Erreur lors de la création de l'image")
   return await response.json()
 }
 
 export const fetchImagesByPlaceId = async (place_id: number): Promise<Image[]> => {
-  const response = await fetch(`/api/images/place/${place_id}`, {
+  const response = await fetch(`/api/v1/images?placeId=${place_id}`, {
     headers: { Authorization: `Bearer ${token.value}` },
   })
   if (!response.ok) throw new Error('Erreur lors du chargement des images')
@@ -34,7 +29,7 @@ export const fetchImagesByPlaceId = async (place_id: number): Promise<Image[]> =
 }
 
 export const fetchImagesByUserId = async (user_id: number): Promise<Image[]> => {
-  const response = await fetch(`/api/images/user/${user_id}`, {
+  const response = await fetch(`/api/v1/images?userId=${user_id}`, {
     headers: { Authorization: `Bearer ${token.value}` },
   })
   if (!response.ok) throw new Error('Erreur lors du chargement des images')
@@ -42,13 +37,13 @@ export const fetchImagesByUserId = async (user_id: number): Promise<Image[]> => 
 }
 
 export const fetchImageById = async (id: number): Promise<Image | null> => {
-  const response = await fetch(`/api/images/${id}`)
+  const response = await fetch(`/api/v1/images/${id}`)
   if (!response.ok) throw new Error("Erreur lors du chargement de l'image")
   return await response.json()
 }
 
 export const deleteImage = async (id: number): Promise<void> => {
-  const response = await fetch(`/api/images/${id}`, {
+  const response = await fetch(`/api/v1/images/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token.value}` },
   })

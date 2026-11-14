@@ -1,56 +1,71 @@
 package com.essadany.localadvisor.controller;
 
+import com.essadany.localadvisor.dto.PlaceRequest;
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.service.PlaceService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/places")
-class PlaceController {
-    @Autowired
-    private PlaceService placeService;
+@RequestMapping("/api/v1/places")
+@RequiredArgsConstructor
+public class PlaceController {
+    private final PlaceService placeService;
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Place>> getAllPlaces() {
-        if (placeService.getAllPlaces().isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(placeService.getAllPlaces());
+    @GetMapping
+    public List<Place> getPlaces() {
+        return placeService.getAllPlaces();
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<Place> addPlace(@RequestBody Place place) {
-        Place createdPlace = placeService.addPlace(place);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPlace);
+    @GetMapping("/{id}")
+    public Place getPlace(@PathVariable Long id) {
+        return placeService.getPlaceById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Place " + id + " not found"));
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Place> updatePlace(@PathVariable Long id, @RequestBody Place place) {
-        if (placeService.getPlaceById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        place.setPlaceId(id);
-        return ResponseEntity.ok(placeService.updatePlace(place));
+    @PostMapping
+    public ResponseEntity<Place> createPlace(@Valid @RequestBody PlaceRequest request) {
+        Place created = placeService.createPlace(toPlace(request), request.categoryId());
+        return ResponseEntity.created(URI.create("/api/v1/places/" + created.getPlaceId())).body(created);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @PutMapping("/{id}")
+    public Place updatePlace(@PathVariable Long id, @Valid @RequestBody PlaceRequest request) {
+        getPlace(id);
+        return placeService.updatePlace(id, toPlace(request), request.categoryId());
+    }
+
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
+        getPlace(id);
         placeService.deletePlace(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteAllPlaces() {
-        placeService.deleteAllPlaces();
-        return ResponseEntity.noContent().build();
+    private Place toPlace(PlaceRequest request) {
+        Place place = new Place();
+        place.setName(request.name());
+        place.setAddress(request.address());
+        place.setCity(request.city());
+        place.setCountry(request.country());
+        place.setWebsite(request.website());
+        place.setPhone(request.phone());
+        place.setZip(request.zip());
+        place.setDescription(request.description());
+        place.setRating(request.rating());
+        return place;
     }
-
-
-
-
 }

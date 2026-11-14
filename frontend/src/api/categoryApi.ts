@@ -9,28 +9,28 @@ export interface Category {
 
 const { token } = useAuth();
 
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${token.value}`
+});
+
 export const categoryApi = {
   getCategories: async (): Promise<Category[]> => {
-    const response = await fetch('/api/categories/all', {
-      
-    });
+    const response = await fetch('/api/v1/categories');
     if (!response.ok) throw new Error('Erreur lors du chargement des Categories');
     return await response.json();
   },
 
   getCategoryById: async (category_id: string): Promise<Category | null> => {
-    const response = await fetch(`/api/categories/${category_id}`);
+    const response = await fetch(`/api/v1/categories/${category_id}`);
     if (!response.ok) throw new Error('Erreur lors du chargement du Category');
     return await response.json();
   },
 
   createCategory: async (category: Category): Promise<Category> => {
-    const response = await fetch('/api/categories', {
+    const response = await fetch('/api/v1/categories', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      },
+      headers: authHeaders(),
       body: JSON.stringify(category)
     });
     if (!response.ok) throw new Error('Erreur lors de la création du Category');
@@ -38,12 +38,9 @@ export const categoryApi = {
   },
 
   updateCategory: async (category: Category): Promise<Category> => {
-    const response = await fetch(`/api/categories/${category.categoryId}`, {
+    const response = await fetch(`/api/v1/categories/${category.categoryId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      },
+      headers: authHeaders(),
       body: JSON.stringify(category)
     });
     if (!response.ok) throw new Error('Erreur lors de la mise à jour du Category');
@@ -51,7 +48,7 @@ export const categoryApi = {
   },
 
   deleteCategory: async (category_id: number): Promise<void> => {
-    const response = await fetch(`/api/categories/${category_id}`, {
+    const response = await fetch(`/api/v1/categories/${category_id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token.value}` },
     });
@@ -59,4 +56,3 @@ export const categoryApi = {
   },
 
 }
-

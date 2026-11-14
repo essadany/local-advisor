@@ -45,7 +45,7 @@ export const useUserStore = defineStore('userStore', {
     async SotreConnectedUser() {
       if (this.user) return;
       if (!username) return;
-      this.user = await userApi.getUserByEmail(username.value)
+      this.user = await userApi.getCurrentUser()
     },
 
     async editUser(id: number, user: User) {
@@ -112,11 +112,9 @@ export const useUserStore = defineStore('userStore', {
     },
 
     async removePlaceFromFavorites(place_id: number) {
-      //get favorite id
-      const favorite = this.favorites.find(fav => fav.placeId === place_id);
-      if (!favorite) return;
+      if (!this.user) return;
       try {
-        await userApi.deleteFavorite(favorite.placeId);
+        await userApi.deleteFavorite(this.user.id, place_id);
         this.favorites = this.favorites.filter(fav => fav.placeId !== place_id);
       }
       catch (error: unknown) {
