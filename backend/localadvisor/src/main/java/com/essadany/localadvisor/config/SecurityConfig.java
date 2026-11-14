@@ -36,7 +36,9 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests( auth ->
-                        auth.requestMatchers("/api/auth/**", "/api/places/all", "/api/categories/all","/api/reviews/all").permitAll()
+                        auth.requestMatchers("/api/auth/**", "/api/places/all", "/api/categories/all","/api/reviews/all","/swagger-ui.html",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtFilter(customUserDetailsService, jwtUtil), UsernamePasswordAuthenticationFilter.class)
                 .build();
