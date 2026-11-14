@@ -9,11 +9,14 @@ export interface Category {
 
 const { token } = useAuth();
 
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${token.value}`
+});
+
 export const categoryApi = {
   getCategories: async (): Promise<Category[]> => {
-    const response = await fetch('/api/v1/categories', {
-      
-    });
+    const response = await fetch('/api/v1/categories');
     if (!response.ok) throw new Error('Erreur lors du chargement des Categories');
     return await response.json();
   },
@@ -27,10 +30,7 @@ export const categoryApi = {
   createCategory: async (category: Category): Promise<Category> => {
     const response = await fetch('/api/v1/categories', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      },
+      headers: authHeaders(),
       body: JSON.stringify(category)
     });
     if (!response.ok) throw new Error('Erreur lors de la création du Category');
@@ -40,10 +40,7 @@ export const categoryApi = {
   updateCategory: async (category: Category): Promise<Category> => {
     const response = await fetch(`/api/v1/categories/${category.categoryId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      },
+      headers: authHeaders(),
       body: JSON.stringify(category)
     });
     if (!response.ok) throw new Error('Erreur lors de la mise à jour du Category');
@@ -59,4 +56,3 @@ export const categoryApi = {
   },
 
 }
-

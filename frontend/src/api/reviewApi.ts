@@ -4,8 +4,8 @@ import type { Place } from "./placeApi";
 
 export interface Review {
   reviewId: number;
-  user : User;
-  place : Place
+  user: User;
+  place: Place;
   rating: number;
   content: string;
   createdAt: string;
@@ -13,17 +13,21 @@ export interface Review {
 
 const { token } = useAuth();
 
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${token.value}`
+});
+
 export const reviewApi = {
 
   getAllReviews: async (): Promise<Review[]> => {
-    const response = await fetch('/api/v1/reviews', {
-    });
+    const response = await fetch('/api/v1/reviews');
     if (!response.ok) throw new Error('Erreur lors du chargement des Reviews');
     return await response.json();
   },
 
   getReviewsByPlaceId: async (place_id: number): Promise<Review[]> => {
-    const response = await fetch(`/api/v1/reviews/place/${place_id}`, {
+    const response = await fetch(`/api/v1/reviews?placeId=${place_id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     });
     if (!response.ok) throw new Error('Erreur lors du chargement des Reviews');
@@ -31,7 +35,7 @@ export const reviewApi = {
   },
 
   getReviewsByUserId: async (user_id: number): Promise<Review[]> => {
-    const response = await fetch(`/api/v1/reviews/user/${user_id}`, {
+    const response = await fetch(`/api/v1/reviews?userId=${user_id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     });
     if (!response.ok) throw new Error('Erreur lors du chargement des Reviews');
@@ -47,10 +51,7 @@ export const reviewApi = {
   createReview: async (review: Review): Promise<Review> => {
     const response = await fetch('/api/v1/reviews', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      },
+      headers: authHeaders(),
       body: JSON.stringify(review)
     });
     if (!response.ok) throw new Error('Erreur lors de la création du Review');
@@ -60,10 +61,7 @@ export const reviewApi = {
   updateReview: async (review: Review): Promise<Review> => {
     const response = await fetch(`/api/v1/reviews/${review.reviewId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.value}`
-      },
+      headers: authHeaders(),
       body: JSON.stringify(review)
     });
     if (!response.ok) throw new Error('Erreur lors de la mise à jour du Review');
@@ -78,4 +76,3 @@ export const reviewApi = {
     if (!response.ok) throw new Error("Erreur lors de la suppression du Review");
   }
 }
-

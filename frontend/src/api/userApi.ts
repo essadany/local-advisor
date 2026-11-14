@@ -11,17 +11,22 @@ export interface User {
 
 const { token } = useAuth()
 
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${token.value}`,
+})
+
 export const userApi = {
-  getUserById: async (id: number): Promise<User> => {
-    const response = await fetch(`/api/v1/users/${id}`, {
+  getCurrentUser: async (): Promise<User> => {
+    const response = await fetch('/api/v1/users/me', {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error("Erreur lors du chargement de l'utilisateur")
     return await response.json()
   },
 
-  getUserByEmail: async (email: string): Promise<User> => {
-    const response = await fetch(`/api/v1/users/email/${email}`, {
+  getUserById: async (id: number): Promise<User> => {
+    const response = await fetch(`/api/v1/users/${id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error("Erreur lors du chargement de l'utilisateur")
@@ -39,10 +44,7 @@ export const userApi = {
   updateUser: async (user: User): Promise<User> => {
     const response = await fetch(`/api/v1/users/${user.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token.value}`,
-      },
+      headers: authHeaders(),
       body: JSON.stringify(user),
     })
     if (!response.ok) throw new Error("Erreur lors de la mise à jour de l'utilisateur")
@@ -58,7 +60,7 @@ export const userApi = {
   },
 
   fetchFavorites: async (user_id: number): Promise<Place[]> => {
-    const response = await fetch(`/api/v1/favorites/${user_id}`, {
+    const response = await fetch(`/api/v1/users/${user_id}/favorites`, {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error('Erreur lors du chargement des Favorites')
@@ -66,15 +68,16 @@ export const userApi = {
   },
 
   createFavorite: async (user_id: number, place_id: number): Promise<void> => {
-    const response = await fetch(`/api/v1/favorites/${user_id}/add/${place_id}`, {
+    const response = await fetch(`/api/v1/users/${user_id}/favorites`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token.value}` },
+      headers: authHeaders(),
+      body: JSON.stringify({ placeId: place_id }),
     })
     if (!response.ok) throw new Error('Erreur lors de la création du Favorite')
   },
 
-  deleteFavorite: async (id: number): Promise<void> => {
-    const response = await fetch(`/api/v1/favorites/${id}`, {
+  deleteFavorite: async (user_id: number, place_id: number): Promise<void> => {
+    const response = await fetch(`/api/v1/users/${user_id}/favorites/${place_id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token.value}` },
     })

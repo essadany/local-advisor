@@ -13,11 +13,11 @@ export const useImageStore = defineStore("imageStore", {
   },
 
   actions: {
-    async addPlaceImage(file: File, place_id: number, user_id: number) {
+    async addPlaceImage(imageUrl: string, place_id: number, user_id: number) {
       try {
         this.isLoading = true;
         this.errorMessage = null;
-        const data = await addImage(file, place_id, user_id);
+        const data = await addImage(imageUrl, place_id, user_id);
         return data;
       } catch (error) {
         this.errorMessage = (error as Error).message;
