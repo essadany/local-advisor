@@ -1,8 +1,10 @@
 package com.essadany.localadvisor.controller;
 
+import com.essadany.localadvisor.dto.ImageRequest;
 import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Image;
 import com.essadany.localadvisor.service.ImageService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +26,8 @@ public class ImageController {
     }
 
     @PostMapping
-    public ResponseEntity<Image> addImage(@RequestParam Long placeId, @RequestParam Long userId, @RequestParam String imageUrl) {
-        Image image = imageService.saveImage(placeId, userId, imageUrl);
+    public ResponseEntity<Image> addImage(@Valid @RequestBody ImageRequest request) {
+        Image image = imageService.saveImage(request.placeId(), request.userId(), request.imageUrl());
         return ResponseEntity.created(URI.create("/api/v1/images/" + image.getId())).body(image);
     }
 
