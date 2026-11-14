@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/places")
+@RequestMapping("/api/v1/places")
 class PlaceController {
     @Autowired
     private PlaceService placeService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<Place>> getAllPlaces() {
         if (placeService.getAllPlaces().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -23,13 +23,13 @@ class PlaceController {
         return ResponseEntity.ok(placeService.getAllPlaces());
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<Place> addPlace(@RequestBody Place place) {
         Place createdPlace = placeService.addPlace(place);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlace);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Place> updatePlace(@PathVariable Long id, @RequestBody Place place) {
         if (placeService.getPlaceById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -38,13 +38,13 @@ class PlaceController {
         return ResponseEntity.ok(placeService.updatePlace(place));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
         placeService.deletePlace(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseEntity<Void> deleteAllPlaces() {
         placeService.deleteAllPlaces();
         return ResponseEntity.noContent().build();

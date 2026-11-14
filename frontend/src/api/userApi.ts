@@ -13,7 +13,7 @@ const { token } = useAuth()
 
 export const userApi = {
   getUserById: async (id: number): Promise<User> => {
-    const response = await fetch(`/api/users/${id}`, {
+    const response = await fetch(`/api/v1/users/${id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error("Erreur lors du chargement de l'utilisateur")
@@ -21,7 +21,7 @@ export const userApi = {
   },
 
   getUserByEmail: async (email: string): Promise<User> => {
-    const response = await fetch(`/api/users/email/${email}`, {
+    const response = await fetch(`/api/v1/users/email/${email}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error("Erreur lors du chargement de l'utilisateur")
@@ -29,7 +29,7 @@ export const userApi = {
   },
 
   getUsers: async (): Promise<User[]> => {
-    const response = await fetch('/api/users/all', {
+    const response = await fetch('/api/v1/users', {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error('Erreur lors du chargement des utilisateurs')
@@ -37,7 +37,7 @@ export const userApi = {
   },
 
   updateUser: async (user: User): Promise<User> => {
-    const response = await fetch(`/api/users/${user.id}`, {
+    const response = await fetch(`/api/v1/users/${user.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export const userApi = {
   },
 
   deleteUser: async (id: number): Promise<void> => {
-    const response = await fetch(`/api/users/${id}`, {
+    const response = await fetch(`/api/v1/users/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token.value}` },
     })
@@ -58,7 +58,7 @@ export const userApi = {
   },
 
   fetchFavorites: async (user_id: number): Promise<Place[]> => {
-    const response = await fetch(`/api/favorites/${user_id}`, {
+    const response = await fetch(`/api/v1/favorites/${user_id}`, {
       headers: { Authorization: `Bearer ${token.value}` },
     })
     if (!response.ok) throw new Error('Erreur lors du chargement des Favorites')
@@ -66,7 +66,7 @@ export const userApi = {
   },
 
   createFavorite: async (user_id: number, place_id: number): Promise<void> => {
-    const response = await fetch(`/api/favorites/${user_id}/add/${place_id}`, {
+    const response = await fetch(`/api/v1/favorites/${user_id}/add/${place_id}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token.value}` },
     })
@@ -74,7 +74,7 @@ export const userApi = {
   },
 
   deleteFavorite: async (id: number): Promise<void> => {
-    const response = await fetch(`/api/favorites/${id}`, {
+    const response = await fetch(`/api/v1/favorites/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token.value}` },
     })

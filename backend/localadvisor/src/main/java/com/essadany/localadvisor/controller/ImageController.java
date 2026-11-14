@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/api/v1/images")
 public class ImageController {
 
     @Autowired
@@ -21,7 +21,7 @@ public class ImageController {
         return ResponseEntity.ok(images);
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<Image> addImage(@RequestParam Long placeId, @RequestParam Long userId, @RequestParam String imageUrl) {
         Image image = imageService.saveImage(placeId, userId, imageUrl);
         return ResponseEntity.ok(image);

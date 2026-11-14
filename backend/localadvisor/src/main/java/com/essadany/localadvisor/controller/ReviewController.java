@@ -10,18 +10,18 @@ import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/reviews")
+@RequestMapping("/api/v1/reviews")
 class ReviewController {
     @Autowired
     private ReviewService reviewService;
 
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<Review> addReview(@RequestBody Review review) {
         Review createdReview = reviewService.addReview(review);
         return ResponseEntity.ok(createdReview);
     }
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<Review>> getAllReviews() {
         if (reviewService.getAllReviews().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -45,7 +45,7 @@ class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByPlace(placeId));
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody Review review) {
         if (reviewService.getReviewById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -55,13 +55,13 @@ class ReviewController {
     }
 
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
         reviewService.deleteReview(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseEntity<Void> deleteAllReviews() {
         reviewService.deleteAllReviews();
         return ResponseEntity.noContent().build();

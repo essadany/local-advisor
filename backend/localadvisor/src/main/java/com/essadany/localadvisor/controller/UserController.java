@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/users")
+@RequestMapping("/api/v1/users")
 class UserController {
     @Autowired
     private UserService UserService;
 
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         if (UserService.getAllUsers().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -25,7 +25,7 @@ class UserController {
         return ResponseEntity.ok(UserService.getAllUsers());
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         User userToUpdate = UserService.getUserById(id);
         if (userToUpdate == null) {
@@ -36,7 +36,7 @@ class UserController {
 
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         UserService.deleteUser(id);
         return ResponseEntity.noContent().build();

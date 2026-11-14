@@ -5,7 +5,7 @@ export interface AuthResponse {
 }
 
 export const registerApi = async (name: string, email:string, password: string) : Promise<AuthResponse> => {
-  const response = await fetch('/api/auth/register', {
+  const response = await fetch('/api/v1/auth/register', {
     method: 'POST',
     body: JSON.stringify({ name, email, password, role: 'USER' }),
     headers: { 'Content-Type': 'application/json' },
@@ -21,7 +21,7 @@ export const registerApi = async (name: string, email:string, password: string) 
 }
 
 export const loginApi = async (email: string, password: string) : Promise<AuthResponse> => {
-  const response = await fetch('/api/auth/login', {
+  const response = await fetch('/api/v1/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
     headers: { 'Content-Type': 'application/json' },

@@ -11,12 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/categories")
+@RequestMapping("/api/v1/categories")
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<Category>> getAllCategories() {
         if (categoryService.getAllCategories().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -24,7 +24,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
-    @GetMapping("{id}/places")
+    @GetMapping("/{id}/places")
     public ResponseEntity<List<Place>> getPlacesByCategory(@PathVariable Long id) {
         if (categoryService.getCategoryById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -32,7 +32,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getCategoryById(id).get().getPlaces());
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public ResponseEntity<Category> addCategory(@RequestBody Category category) {
         if (categoryService.getCategoryByName(category.getName()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -41,7 +41,7 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         if (categoryService.getCategoryById(id).isEmpty()) {
             throw new RuntimeException("Category not found");
@@ -50,13 +50,13 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.updateCategory(category));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping
     public ResponseEntity<Void> deleteAllCategories() {
         categoryService.deleteAllCategories();
         return ResponseEntity.noContent().build();

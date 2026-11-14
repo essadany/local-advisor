@@ -34,7 +34,7 @@ const { token } = useAuth();
 
 export const placeApi = {
   getPlaces: async (): Promise<Place[]> => {
-    const response = await fetch('/api/places/all', {
+    const response = await fetch('/api/v1/places', {
       
     });
     if (!response.ok) throw new Error('Erreur lors du chargement des Places');
@@ -42,13 +42,13 @@ export const placeApi = {
   },
 
   getPlaceById: async (id: string): Promise<Place | null> => {
-    const response = await fetch(`/api/places/${id}`);
+    const response = await fetch(`/api/v1/places/${id}`);
     if (!response.ok) throw new Error('Erreur lors du chargement du Place');
     return await response.json();
   },
 
   createPlace: async (place: CreatePlacePayload): Promise<Place> => {
-    const response = await fetch('/api/places', {
+    const response = await fetch('/api/v1/places', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export const placeApi = {
   },
 
   updatePlace: async (place: Place): Promise<Place> => {
-    const response = await fetch(`/api/places/${place.placeId}`, {
+    const response = await fetch(`/api/v1/places/${place.placeId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ export const placeApi = {
   },
 
   deletePlace: async (id: number): Promise<void> => {
-    const response = await fetch(`/api/places/${id}`, {
+    const response = await fetch(`/api/v1/places/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token.value}`
