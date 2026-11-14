@@ -7,23 +7,20 @@ import com.essadany.localadvisor.model.User;
 import com.essadany.localadvisor.repository.PlaceRepository;
 import com.essadany.localadvisor.repository.ReviewRepository;
 import com.essadany.localadvisor.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ReviewService {
-    @Autowired
-    private ReviewRepository reviewRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PlaceRepository placeRepository;
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final PlaceRepository placeRepository;
 
     public Review addReview(Review review) {
         User user = userRepository.findById(review.getUser().getId())
@@ -35,10 +32,12 @@ public class ReviewService {
         return reviewRepository.save(review);
     }
 
+    @Transactional(readOnly = true)
     public List<Review> getReviewsByUser(Long userId) {
         return reviewRepository.findByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<Review> getReviewsByPlace(Long placeId) {
         return reviewRepository.findByPlacePlaceId(placeId);
     }
@@ -51,10 +50,12 @@ public class ReviewService {
         return reviewRepository.save(review);
     }
 
+    @Transactional(readOnly = true)
     public Optional<Review> getReviewById(Long id) {
         return reviewRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Review> getAllReviews() {
         return reviewRepository.findAll();
     }
