@@ -22,7 +22,7 @@ public class ImageService {
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
 
-    public Image saveImage(Long placeId, Long userId, String imageUrl) {
+    public Image createImage(Long placeId, Long userId, String imageUrl) {
         Place place = placeRepository.findById(placeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Place " + placeId + " not found"));
         User user = userRepository.findById(userId)
@@ -37,10 +37,18 @@ public class ImageService {
     }
 
     @Transactional(readOnly = true)
-    public List<Image> getImagesByPlaceId(Long placeId) {
-        Place place = placeRepository.findById(placeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Place " + placeId + " not found"));
-        return (List<Image>) imageRepository.findAllByPlace(place);
+    public List<Image> getImages(Long placeId, Long userId) {
+        if (placeId != null) {
+            Place place = placeRepository.findById(placeId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Place " + placeId + " not found"));
+            return toList(imageRepository.findAllByPlace(place));
+        }
+        if (userId != null) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User " + userId + " not found"));
+            return toList(imageRepository.findAllByUser(user));
+        }
+        return imageRepository.findAll();
     }
 
     @Transactional(readOnly = true)
@@ -50,5 +58,11 @@ public class ImageService {
 
     public void deleteImage(Long imageId) {
         imageRepository.deleteById(imageId);
+    }
+
+    private List<Image> toList(Iterable<Image> images) {
+        java.util.ArrayList<Image> result = new java.util.ArrayList<>();
+        images.forEach(result::add);
+        return result;
     }
 }

@@ -19,11 +19,8 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final CategoryRepository categoryRepository;
 
-    public Place addPlace(Place place) {
-        Long categoryId = place.getCategory().getCategoryId();
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Category " + categoryId + " not found"));
-        place.setCategory(category);
+    public Place createPlace(Place place, Long categoryId) {
+        place.setCategory(resolveCategory(categoryId));
         return placeRepository.save(place);
     }
 
@@ -32,7 +29,9 @@ public class PlaceService {
         return placeRepository.findAll();
     }
 
-    public Place updatePlace(Place place) {
+    public Place updatePlace(Long id, Place place, Long categoryId) {
+        place.setPlaceId(id);
+        place.setCategory(resolveCategory(categoryId));
         return placeRepository.save(place);
     }
 
@@ -40,12 +39,13 @@ public class PlaceService {
         placeRepository.deleteById(id);
     }
 
-    public void deleteAllPlaces() {
-        placeRepository.deleteAll();
-    }
-
     @Transactional(readOnly = true)
     public Optional<Place> getPlaceById(Long placeId) {
         return placeRepository.findById(placeId);
+    }
+
+    private Category resolveCategory(Long categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category " + categoryId + " not found"));
     }
 }

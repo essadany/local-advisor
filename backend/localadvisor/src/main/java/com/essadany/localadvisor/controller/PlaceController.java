@@ -2,57 +2,56 @@ package com.essadany.localadvisor.controller;
 
 import com.essadany.localadvisor.dto.PlaceRequest;
 import com.essadany.localadvisor.exception.ResourceNotFoundException;
-import com.essadany.localadvisor.model.Category;
 import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.service.PlaceService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/places")
-class PlaceController {
-    @Autowired
-    private PlaceService placeService;
+@RequiredArgsConstructor
+public class PlaceController {
+    private final PlaceService placeService;
 
     @GetMapping
-    public ResponseEntity<List<Place>> getAllPlaces() {
-        return ResponseEntity.ok(placeService.getAllPlaces());
+    public List<Place> getPlaces() {
+        return placeService.getAllPlaces();
+    }
+
+    @GetMapping("/{id}")
+    public Place getPlace(@PathVariable Long id) {
+        return placeService.getPlaceById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Place " + id + " not found"));
     }
 
     @PostMapping
-    public ResponseEntity<Place> addPlace(@Valid @RequestBody PlaceRequest request) {
-        Place createdPlace = placeService.addPlace(toPlace(request));
-        return ResponseEntity.created(URI.create("/api/v1/places/" + createdPlace.getPlaceId()))
-                .body(createdPlace);
+    public ResponseEntity<Place> createPlace(@Valid @RequestBody PlaceRequest request) {
+        Place created = placeService.createPlace(toPlace(request), request.categoryId());
+        return ResponseEntity.created(URI.create("/api/v1/places/" + created.getPlaceId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Place> updatePlace(@PathVariable Long id, @Valid @RequestBody PlaceRequest request) {
-        if (placeService.getPlaceById(id).isEmpty()) {
-            throw new ResourceNotFoundException("Place " + id + " not found");
-        }
-        Place place = toPlace(request);
-        place.setPlaceId(id);
-        return ResponseEntity.ok(placeService.updatePlace(place));
+    public Place updatePlace(@PathVariable Long id, @Valid @RequestBody PlaceRequest request) {
+        getPlace(id);
+        return placeService.updatePlace(id, toPlace(request), request.categoryId());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePlace(@PathVariable Long id) {
-        if (placeService.getPlaceById(id).isEmpty()) {
-            throw new ResourceNotFoundException("Place " + id + " not found");
-        }
+        getPlace(id);
         placeService.deletePlace(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> deleteAllPlaces() {
-        placeService.deleteAllPlaces();
         return ResponseEntity.noContent().build();
     }
 
@@ -67,10 +66,6 @@ class PlaceController {
         place.setZip(request.zip());
         place.setDescription(request.description());
         place.setRating(request.rating());
-
-        Category category = new Category();
-        category.setCategoryId(request.categoryId());
-        place.setCategory(category);
         return place;
     }
 }

@@ -1,6 +1,8 @@
 package com.essadany.localadvisor.service;
 
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Category;
+import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,7 @@ import java.util.Optional;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
-    public Category addCategory(Category category) {
+    public Category createCategory(Category category) {
         return categoryRepository.save(category);
     }
 
@@ -24,16 +26,13 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
-    public Category updateCategory(Category category) {
+    public Category updateCategory(Long id, Category category) {
+        category.setCategoryId(id);
         return categoryRepository.save(category);
     }
 
     public void deleteCategory(Long id) {
         categoryRepository.deleteById(id);
-    }
-
-    public void deleteAllCategories() {
-        categoryRepository.deleteAll();
     }
 
     @Transactional(readOnly = true)
@@ -44,5 +43,12 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public Optional<Category> getCategoryById(Long id) {
         return categoryRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Place> getPlacesByCategoryId(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category " + id + " not found"));
+        return new java.util.ArrayList<>(category.getPlaces());
     }
 }

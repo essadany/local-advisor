@@ -1,38 +1,43 @@
 package com.essadany.localadvisor.controller;
 
-import com.essadany.localadvisor.exception.ResourceNotFoundException;
+import com.essadany.localadvisor.dto.FavoriteRequest;
 import com.essadany.localadvisor.model.Favorite;
+import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.service.FavoriteService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/favorites")
-class FavoriteController {
-    @Autowired
-    private FavoriteService favoriteService;
+@RequestMapping("/api/v1/users/{userId}/favorites")
+@RequiredArgsConstructor
+public class FavoriteController {
+    private final FavoriteService favoriteService;
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<Iterable<Favorite>> getFavoritesByUserId(@PathVariable Long userId) {
-        return ResponseEntity.ok(favoriteService.getFavoritesByUserId(userId));
+    @GetMapping
+    public List<Place> getFavorites(@PathVariable Long userId) {
+        return favoriteService.getFavoritePlaces(userId);
     }
 
     @PostMapping
-    public ResponseEntity<Favorite> addFavorite(@RequestBody Favorite favorite) {
-        Favorite createdFavorite = favoriteService.addFavorite(favorite);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdFavorite);
+    public ResponseEntity<Place> addFavorite(@PathVariable Long userId, @Valid @RequestBody FavoriteRequest request) {
+        Favorite created = favoriteService.addFavorite(userId, request.placeId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created.getPlace());
     }
 
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removeFavoriteById(@PathVariable Long id) {
-        if (favoriteService.getFavoriteById(id).isEmpty()) {
-            throw new ResourceNotFoundException("Favorite " + id + " not found");
-        }
-        favoriteService.removeFavoriteById(id);
+    @DeleteMapping("/{placeId}")
+    public ResponseEntity<Void> removeFavorite(@PathVariable Long userId, @PathVariable Long placeId) {
+        favoriteService.removeFavorite(userId, placeId);
         return ResponseEntity.noContent().build();
     }
-
 }
