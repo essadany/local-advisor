@@ -40,3 +40,35 @@ LocalAdvisor est une plateforme collaborative où les utilisateurs partagent, d�
 - Notifications sur les nouveaux avis
 
 ---
+
+## API REST
+
+Toutes les routes sont versionnées sous `/api/v1`. Les lectures publiques (`places`, `categories`, `reviews`, `images`)
+sont accessibles sans jeton ; les écritures et les routes `users` exigent `Authorization: Bearer <token>`.
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| POST | `/api/v1/auth/register` | Inscription (renvoie un JWT) |
+| POST | `/api/v1/auth/login` | Connexion (renvoie un JWT) |
+| GET / POST | `/api/v1/categories` | Lister / créer |
+| GET / PUT / DELETE | `/api/v1/categories/{id}` | Lire / modifier / supprimer |
+| GET | `/api/v1/categories/{id}/places` | Lieux d'une catégorie |
+| GET / POST | `/api/v1/places` | Lister / créer |
+| GET / PUT / DELETE | `/api/v1/places/{id}` | Lire / modifier / supprimer |
+| GET / POST | `/api/v1/reviews` | Lister (`?placeId=` ou `?userId=`) / créer |
+| GET / PUT / DELETE | `/api/v1/reviews/{id}` | Lire / modifier / supprimer |
+| GET / POST | `/api/v1/images` | Lister (`?placeId=` ou `?userId=`) / créer |
+| GET / DELETE | `/api/v1/images/{id}` | Lire / supprimer |
+| GET | `/api/v1/users` | Lister les utilisateurs |
+| GET | `/api/v1/users/me` | Utilisateur connecté |
+| GET / PUT / DELETE | `/api/v1/users/{id}` | Lire / modifier / supprimer |
+| GET / POST | `/api/v1/users/{userId}/favorites` | Lister / ajouter un favori (`{ "placeId": 1 }`) |
+| DELETE | `/api/v1/users/{userId}/favorites/{placeId}` | Retirer un favori |
+
+Les erreurs respectent une enveloppe unique :
+
+```json
+{ "error": { "status": 404, "code": "not_found", "message": "...", "path": "...", "retryable": false } }
+```
+
+---
