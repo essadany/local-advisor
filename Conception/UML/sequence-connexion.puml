@@ -1,0 +1,75 @@
+@startuml sequence-connexion
+title Connexion — POST /api/v1/auth/login
+' Scénario réel : AuthController.login + AuthenticationManager + CustomUserDetailsService + JwtUtil
+
+autonumber
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #334155
+  LifeLineBorderColor #94A3B8
+  ParticipantBorderColor #334155
+  ParticipantBackgroundColor #F8FAFC
+}
+
+actor "Client (SPA)" as C
+participant "AuthController" as AC
+participant "AuthenticationManager" as AM
+participant "CustomUserDetailsService" as CUD
+participant "UserRepository" as UR
+participant "PasswordEncoder" as PE
+participant "JwtUtil" as JU
+database "PostgreSQL" as DB
+
+C -> AC : POST /api/v1/auth/login\n{ email, password }
+activate AC
+
+AC -> AM : authenticate(email, password)
+activate AM
+
+AM -> CUD : loadUserByUsername(email)
+activate CUD
+CUD -> UR : findByEmail(email)
+activate UR
+UR -> DB : SELECT ... WHERE email = ?
+DB --> UR : 0 ou 1 ligne
+UR --> CUD : Optional<User>
+deactivate UR
+CUD --> AM : UserDetails\n(email, hash, autorité)
+deactivate CUD
+
+AM -> PE : matches(password, hash)
+activate PE
+PE --> AM : true / false
+deactivate PE
+
+alt Identifiants valides
+  AM --> AC : Authentication
+  deactivate AM
+
+  AC -> JU : generateToken(email)
+  activate JU
+  JU --> AC : JWT (HS256, durée 2 h)
+  deactivate JU
+
+  AC --> C : 200 OK\n{ token, type: "Bearer" }
+else Identifiants invalides
+  AM --> AC : AuthenticationException
+  deactivate AM
+  AC --> C : 401 Unauthorized\n{ error: { code: "unauthorized", ... } }
+end
+
+note right of AC
+  JWT stateless : ni refresh token,
+  ni révocation serveur. Le logout
+  est purement côté client.
+end note
+
+deactivate AC
+
+note over C, AC
+  Côté SPA : le token est stocké dans
+  localStorage sous la clé "token",
+  puis envoyé en "Authorization: Bearer".
+end note
+
+@enduml

@@ -1,0 +1,72 @@
+@startuml sequence-creer-lieu
+title Créer un lieu — POST /api/v1/places
+' Scénario réel : JwtFilter -> SecurityConfig -> PlaceController.createPlace -> PlaceService
+
+autonumber
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #334155
+  LifeLineBorderColor #94A3B8
+  ParticipantBorderColor #334155
+  ParticipantBackgroundColor #F8FAFC
+}
+
+actor "Utilisateur authentifié" as U
+participant "JwtFilter" as JF
+participant "SecurityFilterChain" as SF
+participant "PlaceController" as PC
+participant "PlaceService" as PS
+participant "CategoryRepository" as CR
+participant "PlaceRepository" as PR
+database "PostgreSQL" as DB
+
+U -> JF : POST /api/v1/places\nAuthorization: Bearer <JWT>\n{ ..., categoryId }
+activate JF
+JF -> JF : extraire l'email du JWT
+JF -> JF : validateToken(email, expiration)
+alt JWT absent, invalide ou expiré
+  JF --> U : requête non authentifiée
+  note right of JF : 401 Unauthorized\n(authenticationEntryPoint)
+else JWT valide
+  JF -> SF : authentifier la requête
+  JF -> PC : poursuivre la chaîne de filtres
+end
+deactivate JF
+
+activate PC
+PC -> PS : createPlace(place, categoryId)
+activate PS
+
+PS -> CR : findById(categoryId)
+activate CR
+CR -> DB : SELECT ... FROM categories WHERE id = ?
+DB --> CR : 0 ou 1 ligne
+CR --> PS : Optional<Category>
+deactivate CR
+
+alt Catégorie inexistante
+  PS --> PC : ResourceNotFoundException
+  PC --> U : 404 Not Found\n{ error: { code: "not_found", ... } }
+else Catégorie trouvée
+  PS -> PS : place.setCategory(category)
+  PS -> PR : save(place)
+  activate PR
+  PR -> DB : INSERT INTO places
+  DB --> PR : ligne créée
+  PR --> PS : Place
+  deactivate PR
+
+  PS --> PC : Place
+  PC --> U : 201 Created\nLocation: /api/v1/places/{id}\n{ place }
+end
+
+deactivate PS
+deactivate PC
+
+note over PC
+  Aucun contrôle de propriété : tout
+  utilisateur authentifié peut créer,
+  modifier ou supprimer n'importe quel lieu.
+end note
+
+@enduml

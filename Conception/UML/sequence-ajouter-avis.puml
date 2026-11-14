@@ -1,0 +1,78 @@
+@startuml sequence-ajouter-avis
+title Publier un avis — POST /api/v1/reviews
+' Scénario réel : ReviewController.createReview -> ReviewService.createReview
+
+autonumber
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #334155
+  LifeLineBorderColor #94A3B8
+  ParticipantBorderColor #334155
+  ParticipantBackgroundColor #F8FAFC
+}
+
+actor "Utilisateur authentifié" as U
+participant "ReviewController" as RC
+participant "ReviewService" as RS
+participant "UserRepository" as UR
+participant "PlaceRepository" as PR
+participant "ReviewRepository" as RR
+database "PostgreSQL" as DB
+
+U -> RC : POST /api/v1/reviews\nAuthorization: Bearer <JWT>\n{ content, rating, user: { id }, place: { placeId } }
+activate RC
+RC -> RS : createReview(review)
+activate RS
+
+alt user.id ou place.placeId manquant
+  RS --> RC : BadRequestException
+  RC --> U : 400 Bad Request\n{ error: { code: "bad_request", ... } }
+else Identifiants fournis
+  RS -> UR : findById(user.id)
+  activate UR
+  UR -> DB : SELECT ... FROM users WHERE id = ?
+  DB --> UR : 0 ou 1 ligne
+  UR --> RS : Optional<User>
+  deactivate UR
+
+  RS -> PR : findById(place.placeId)
+  activate PR
+  PR -> DB : SELECT ... FROM places WHERE id = ?
+  DB --> PR : 0 ou 1 ligne
+  PR --> RS : Optional<Place>
+  deactivate PR
+
+  alt Utilisateur ou lieu inexistant
+    RS --> RC : ResourceNotFoundException
+    RC --> U : 404 Not Found
+  else Utilisateur et lieu trouvés
+    RS -> RS : review.setUser(user)\nreview.setPlace(place)\nreview.setReviewId(null)
+    RS -> RR : save(review)
+    activate RR
+    RR -> DB : INSERT INTO reviews
+    DB --> RR : ligne créée
+    RR --> RS : Review (createdAt via @PrePersist)
+    deactivate RR
+
+    RS --> RC : Review
+    RC --> U : 201 Created\nLocation: /api/v1/reviews/{id}\n{ review }
+  end
+end
+
+deactivate RS
+deactivate RC
+
+note over RC
+  SÉCURITÉ : user.id vient du corps de la requête
+  et n'est jamais comparé au principal authentifié.
+  Un utilisateur peut donc publier un avis au nom
+  d'un autre (usurpation).
+end note
+
+note over RS
+  Aucune contrainte d'unicité (user, place) :
+  un même utilisateur peut publier plusieurs avis
+  sur le même lieu.
+end note
+
+@enduml

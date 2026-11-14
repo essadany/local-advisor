@@ -1,0 +1,108 @@
+@startuml diagramme-classes
+!pragma layout smetana
+' Modèle du domaine reconstruit depuis les entités JPA réelles.
+' Les notes signalent les écarts de conception (voir AUDIT-UML.md).
+
+hide circle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  ArrowColor #475569
+}
+skinparam enum {
+  BackgroundColor #FEF3C7
+  BorderColor #D97706
+}
+
+title LocalAdvisor — modèle du domaine
+
+enum Role {
+  USER
+  ADMIN
+}
+
+class User {
+  - id : Long
+  - email : String {unique}
+  - name : String
+  - password : String {WRITE_ONLY}
+  - role : Role
+}
+
+class Category {
+  - categoryId : Long
+  - name : String {unique, not null}
+  - description : String
+  - icon : String
+}
+
+class Place {
+  - placeId : Long
+  - name : String
+  - address : String
+  - city : String
+  - country : String
+  - website : String
+  - phone : String
+  - zip : String
+  - description : String
+  - rating : int {0..5}
+}
+
+class Review {
+  - reviewId : Long
+  - content : String
+  - rating : int {0..5}
+  - createdAt : Date
+}
+
+class Favorite {
+  - favoriteId : Long
+  - dateAdded : Date
+}
+
+class Image {
+  - id : Long
+  - url : String
+}
+
+User "1" -- "0..*" Favorite : ajoute >
+Place "1" -- "0..*" Favorite : est favori >
+User "1" -- "0..*" Review : rédige >
+Place "1" -- "0..*" Review : reçoit >
+User "1" -- "0..*" Image : téléverse >
+Place "1" -- "0..*" Image : illustre >
+Category "1" -- "0..*" Place : classe >
+User --> Role : possède >
+
+note right of Favorite
+  Classe d'association User ↔ Place.
+  Aucune contrainte unique (user_id, place_id)
+  en base : contrôle applicatif uniquement.
+end note
+
+note right of Review
+  user_id et place_id sont nullables
+  en base (@JoinColumn sans nullable=false) :
+  intégrité non garantie par le schéma.
+end note
+
+note right of Place
+  rating est un champ saisi manuellement.
+  Il n'est PAS calculé à partir des avis :
+  ne pas le modéliser comme un agrégat.
+end note
+
+note bottom of Image
+  url uniquement : aucun stockage de fichier,
+  aucun service d'objets (S3/MinIO) branché.
+end note
+
+note bottom of Category
+  Champ Java nommé "Icon" (majuscule)
+  alors que le frontend attend "icon".
+end note
+
+@enduml
