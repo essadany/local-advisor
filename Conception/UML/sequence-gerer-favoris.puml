@@ -1,0 +1,99 @@
+@startuml sequence-gerer-favoris
+title Gérer les favoris — /api/v1/users/{userId}/favorites
+' Scénario réel : FavoriteController -> FavoriteService (ajout / retrait / consultation)
+
+autonumber
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #334155
+  LifeLineBorderColor #94A3B8
+  ParticipantBorderColor #334155
+  ParticipantBackgroundColor #F8FAFC
+}
+
+actor "Utilisateur authentifié" as U
+participant "FavoriteController" as FC
+participant "FavoriteService" as FS
+participant "UserRepository" as UR
+participant "PlaceRepository" as PR
+participant "FavoriteRepository" as FR
+database "PostgreSQL" as DB
+
+== Ajouter un favori ==
+U -> FC : POST /api/v1/users/{userId}/favorites\nAuthorization: Bearer <JWT>\n{ placeId }
+activate FC
+FC -> FS : addFavorite(userId, placeId)
+activate FS
+
+FS -> UR : findById(userId)
+activate UR
+UR -> DB : SELECT ... FROM users WHERE id = ?
+DB --> UR : 0 ou 1 ligne
+UR --> FS : Optional<User>
+deactivate UR
+
+FS -> PR : findById(placeId)
+activate PR
+PR -> DB : SELECT ... FROM places WHERE id = ?
+DB --> PR : 0 ou 1 ligne
+PR --> FS : Optional<Place>
+deactivate PR
+
+alt Utilisateur ou lieu inexistant
+  FS --> FC : ResourceNotFoundException
+  FC --> U : 404 Not Found
+else Utilisateur et lieu trouvés
+  FS -> FR : existsByUserAndPlace(user, place)
+  activate FR
+  FR -> DB : SELECT EXISTS(...)
+  DB --> FR : true / false
+  FR --> FS : booléen
+  deactivate FR
+
+  alt Déjà en favori
+    FS --> FC : ConflictException
+    FC --> U : 409 Conflict\n{ error: { code: "conflict", ... } }
+  else Nouveau favori
+    FS -> FR : save(favorite)
+    activate FR
+    FR -> DB : INSERT INTO favorites\n(dateAdded, user_id, place_id)
+    DB --> FR : ligne créée
+    FR --> FS : Favorite
+    deactivate FR
+
+    FS --> FC : Favorite
+    FC --> U : 201 Created\n{ place }
+  end
+end
+
+deactivate FS
+deactivate FC
+
+== Retirer un favori ==
+U -> FC : DELETE /api/v1/users/{userId}/favorites/{placeId}
+activate FC
+FC -> FS : removeFavorite(userId, placeId)
+activate FS
+FS -> FR : deleteByUserAndPlace(user, place)
+activate FR
+FR -> DB : DELETE FROM favorites WHERE user_id = ? AND place_id = ?
+DB --> FR : OK
+deactivate FR
+FS --> FC : void
+FC --> U : 204 No Content
+deactivate FS
+deactivate FC
+
+note over FC
+  SÉCURITÉ : userId vient du chemin et n'est pas
+  comparé au principal authentifié. Un utilisateur
+  peut donc manipuler les favoris d'un autre.
+end note
+
+note over FR
+  Aucune contrainte unique (user_id, place_id)
+  en base : l'unicité n'est garantie que par
+  existsByUserAndPlace (course possible).
+end note
+
+@enduml

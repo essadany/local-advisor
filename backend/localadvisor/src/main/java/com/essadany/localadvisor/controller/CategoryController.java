@@ -1,66 +1,65 @@
 package com.essadany.localadvisor.controller;
 
+import com.essadany.localadvisor.exception.ConflictException;
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.Category;
 import com.essadany.localadvisor.model.Place;
 import com.essadany.localadvisor.service.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/categories")
+@RequestMapping("/api/v1/categories")
+@RequiredArgsConstructor
 public class CategoryController {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @GetMapping("/all")
-    public ResponseEntity<List<Category>> getAllCategories() {
-        if (categoryService.getAllCategories().isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(categoryService.getAllCategories());
+    @GetMapping
+    public List<Category> getCategories() {
+        return categoryService.getAllCategories();
     }
 
-    @GetMapping("{id}/places")
-    public ResponseEntity<List<Place>> getPlacesByCategory(@PathVariable Long id) {
-        if (categoryService.getCategoryById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(categoryService.getCategoryById(id).get().getPlaces());
+    @GetMapping("/{id}")
+    public Category getCategory(@PathVariable Long id) {
+        return categoryService.getCategoryById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category " + id + " not found"));
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<Category> addCategory(@RequestBody Category category) {
+    @GetMapping("/{id}/places")
+    public List<Place> getCategoryPlaces(@PathVariable Long id) {
+        return categoryService.getPlacesByCategoryId(id);
+    }
+
+    @PostMapping
+    public ResponseEntity<Category> createCategory(@RequestBody Category category) {
         if (categoryService.getCategoryByName(category.getName()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            throw new ConflictException("Category '" + category.getName() + "' already exists");
         }
-        Category createdCategory = categoryService.addCategory(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
+        Category created = categoryService.createCategory(category);
+        return ResponseEntity.created(URI.create("/api/v1/categories/" + created.getCategoryId())).body(created);
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        if (categoryService.getCategoryById(id).isEmpty()) {
-            throw new RuntimeException("Category not found");
-        }
-        category.setCategoryId(id);
-        return ResponseEntity.ok(categoryService.updateCategory(category));
+    @PutMapping("/{id}")
+    public Category updateCategory(@PathVariable Long id, @RequestBody Category category) {
+        getCategory(id);
+        return categoryService.updateCategory(id, category);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
+        getCategory(id);
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
-
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteAllCategories() {
-        categoryService.deleteAllCategories();
-        return ResponseEntity.noContent().build();
-    }
-
-
 }

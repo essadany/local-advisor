@@ -1,51 +1,66 @@
 package com.essadany.localadvisor.controller;
 
-import com.essadany.localadvisor.model.Favorite;
-import com.essadany.localadvisor.service.UserService;
+import com.essadany.localadvisor.exception.ResourceNotFoundException;
 import com.essadany.localadvisor.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.essadany.localadvisor.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("api/users")
-class UserController {
-    @Autowired
-    private UserService UserService;
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+public class UserController {
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
-
-    @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
-        if (UserService.getAllUsers().isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(UserService.getAllUsers());
+    @GetMapping
+    public List<User> getUsers() {
+        return userService.getAllUsers();
     }
 
-    @PutMapping("/update/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        User userToUpdate = UserService.getUserById(id);
-        if (userToUpdate == null) {
-            return ResponseEntity.notFound().build();
-        }
-        user.setId(id);
-        return ResponseEntity.ok(UserService.updateUser(user));
-
+    @GetMapping("/me")
+    public User getCurrentUser(Authentication authentication) {
+        return userService.getUserByEmail(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody User update) {
+        User existing = userService.getUserById(id);
+
+        if (update.getName() != null) {
+            existing.setName(update.getName());
+        }
+        if (update.getEmail() != null) {
+            existing.setEmail(update.getEmail());
+        }
+        if (update.getPassword() != null && !update.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(update.getPassword()));
+        }
+
+        return userService.updateUser(existing);
+    }
+
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        UserService.deleteUser(id);
+        userService.getUserById(id);
+        userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/email/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-        Optional<User> user = UserService.getUserByEmail(email);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
-    }
-
 }

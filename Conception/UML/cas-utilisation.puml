@@ -1,0 +1,109 @@
+@startuml cas-utilisation
+!pragma layout smetana
+title Cas d'utilisation — LocalAdvisor
+' Source de vérité : backend/localadvisor/src/main/java + frontend/src
+' Légende : les cas en pointillés ne sont PAS implémentés (voir AUDIT-UML.md).
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #ECFDF5
+  BorderColor #059669
+  FontColor #064E3B
+}
+skinparam actor {
+  BackgroundColor #E0F2FE
+  BorderColor #0284C7
+}
+
+actor "Visiteur" as Visiteur
+actor "Utilisateur inscrit\n(role USER)" as User
+actor "Administrateur\n(role ADMIN)" as Admin
+
+User --|> Visiteur
+Admin --|> User
+
+rectangle "LocalAdvisor" {
+
+  package "Consultation publique" {
+    usecase "Consulter la liste des lieux" as UC_ListPlaces
+    usecase "Consulter la fiche d'un lieu" as UC_ViewPlace
+    usecase "Consulter les catégories" as UC_ListCategories
+    usecase "Consulter les lieux\nd'une catégorie" as UC_CategoryPlaces
+    usecase "Consulter les avis" as UC_ListReviews
+    usecase "Consulter les images" as UC_ListImages
+    usecase "Rechercher / filtrer\n(côté frontend)" as UC_Search
+  }
+
+  package "Authentification" {
+    usecase "S'inscrire" as UC_Register
+    usecase "Se connecter" as UC_Login
+  }
+
+  package "Contenus (authentifié)" {
+    usecase "Créer / modifier /\nsupprimer un lieu" as UC_ManagePlace
+    usecase "Publier un avis" as UC_CreateReview
+    usecase "Modifier / supprimer\nun avis" as UC_ManageReview
+    usecase "Gérer ses favoris" as UC_ManageFavorites
+    usecase "Ajouter une image" as UC_AddImage
+    usecase "Supprimer une image" as UC_DeleteImage
+  }
+
+  package "Catégories (authentifié)" {
+    usecase "Créer / modifier /\nsupprimer une catégorie" as UC_ManageCategory
+  }
+
+  package "Compte" {
+    usecase "Consulter son profil" as UC_ViewProfile
+    usecase "Modifier son profil" as UC_UpdateProfile
+    usecase "Supprimer son compte" as UC_DeleteAccount
+    usecase "Lister les utilisateurs" as UC_ListUsers
+  }
+
+  package "Non implémenté (hors périmètre actuel)" {
+    usecase "Modérer les contenus" as UC_Admin
+    usecase "Recevoir des notifications" as UC_Notifications
+    usecase "Consulter la carte\ninteractive" as UC_Map
+    usecase "Suggérer une catégorie" as UC_SuggestCategory
+  }
+}
+
+Visiteur --> UC_ListPlaces
+Visiteur --> UC_ViewPlace
+Visiteur --> UC_ListCategories
+Visiteur --> UC_CategoryPlaces
+Visiteur --> UC_ListReviews
+Visiteur --> UC_ListImages
+Visiteur --> UC_Search
+Visiteur --> UC_Register
+Visiteur --> UC_Login
+
+User --> UC_ManagePlace
+User --> UC_CreateReview
+User --> UC_ManageReview
+User --> UC_ManageFavorites
+User --> UC_AddImage
+User --> UC_DeleteImage
+User --> UC_ManageCategory
+User --> UC_ViewProfile
+User --> UC_UpdateProfile
+User --> UC_DeleteAccount
+User --> UC_ListUsers
+
+Admin --> UC_Admin
+
+note right of UC_Admin : Rôle ADMIN jamais vérifié\npar SecurityConfig (aucune règle hasRole)
+note right of UC_Notifications : README uniquement,\naucun code back/front
+note right of UC_Map : Aucun code back/front
+note right of UC_SuggestCategory : Modale frontend\nsans endpoint
+
+note bottom of UC_ManagePlace
+  Toute écriture exige un JWT valide.
+  Mais aucun contrôle de propriété :
+  un utilisateur peut modifier les
+  contenus des autres (voir AUDIT-UML.md).
+end note
+
+@enduml
